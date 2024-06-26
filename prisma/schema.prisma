@@ -25,7 +25,6 @@ model User {
   sessions          Session[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  comments          Comment[]
   workspaces        Workspace[] @relation("WorkspaceUsers")
   sentInvitations   Invitation[] @relation("SentInvitations")
 
