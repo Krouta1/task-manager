@@ -75,27 +75,6 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-model Status {
-  id         String   @id @default(cuid())
-  name       String
-  position   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
-
-  @@map("statuses")
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  @@map("comments")
-}
-
 model Workspace {
   id                String    @id @default(cuid())
   name              String
