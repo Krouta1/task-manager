@@ -16,17 +16,18 @@ generator client {
 }
 
 model User {
-  id                String    @id @default(cuid())
-  name              String?
-  email             String    @unique
-  emailVerified     DateTime?
-  image             String?
-  accounts          Account[]
-  sessions          Session[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  workspaces        Workspace[] @relation("WorkspaceUsers")
-  sentInvitations   Invitation[] @relation("SentInvitations")
+  id              String          @id @default(cuid())
+  name            String?
+  email           String          @unique
+  emailVerified   DateTime?
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  workspaces      Workspace[]
+  sentInvitations Invitation[]    @relation("SentInvitations")
+  WorkspaceUser   WorkspaceUser[]
 
   @@map("users")
 }
@@ -74,15 +75,37 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+enum WorkspaceIcon {
+  KeyRound
+  Zap
+  House
+  DollarSign
+  UserRound
+  FolderClosed
+  Sun
+  MessageCircle
+  Gem
+  Flag
+  Heart
+  Settings
+  Crown
+  Flame
+  Pen
+  Earth
+}
+
 model Workspace {
-  id                String    @id @default(cuid())
-  name              String
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  users             User[]    @relation("WorkspaceUsers", references: [id], through: WorkspaceUser)
-  invitations       Invitation[] @relation("WorkspaceInvitations")
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @default(now())
+  id            String          @id @default(cuid())
+  name          String
+  icon          WorkspaceIcon   @default(KeyRound)
+  iconColor     String?
+  isMain        Boolean         @default(false)
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitations   Invitation[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now())
+  WorkspaceUser WorkspaceUser[]
 
   @@map("workspaces")
 }
@@ -101,27 +124,26 @@ model WorkspaceUser {
 }
 
 model Board {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   name       String
-  isSharable Boolean   @default(true)
-  isFavorite Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @default(now())
+  isSharable Boolean  @default(true)
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
 
   @@map("boards")
 }
 
 model Invitation {
-  id            String     @id @default(cuid())
-  email         String
-  workspaceId   String
-  workspace     Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade, name: "WorkspaceInvitations")
-  senderId      String
-  sender        User       @relation(fields: [senderId], references: [id], onDelete: Cascade, name: "SentInvitations")
-  status        String     @default("pending") // pending, accepted, rejected
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id          String    @id @default(cuid())
+  email       String
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade, name: "SentInvitations")
+  status      String    @default("pending") // pending, accepted, rejected
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("invitations")
 }
-
