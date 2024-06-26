@@ -199,7 +199,7 @@ model Board {
   id        String    @id @default(cuid())
   name      String
   isSharable Boolean  @default(true)
-  isFavouriteBoolean  @default(true)
+  isFavorite Boolean  @default(true)
   projectId String
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks     Task[]
