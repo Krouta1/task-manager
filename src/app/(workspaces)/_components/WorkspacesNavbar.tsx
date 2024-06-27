@@ -19,7 +19,7 @@ const WorkspacesNavbar = async () => {
           My work
         </WorkspacesNavLink>
       </nav>
-      <nav className="h-full w-full grow px-4 py-2">
+      <nav className="h-full w-full grow p-4">
         <WorkspaceMenu user={user} />
       </nav>
     </div>

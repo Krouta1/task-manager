@@ -1,6 +1,5 @@
 "use client";
 import { User } from "next-auth";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -16,34 +15,69 @@ import {
 import { Input } from "@/components/ui/input";
 import IconsSelect from "@/components/icon-select";
 import IconColorSelect from "@/components/icon-color-select";
+import {
+  CreateWorkspaceFormSchema,
+  CreateWorkspaceSchemaType,
+} from "@/schema-types/workspaces";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CreateWorkspace } from "@/actions/workspaces";
+import { toast } from "sonner";
+import { useCallback } from "react";
+import { set } from "zod";
 
 type AddWorkspaceFormProps = {
   user?: User;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 };
 
-const AddWorkspaceFormSchema = z.object({
-  name: z.string().min(2).max(50),
-  icon: z.string().min(2).max(50),
-  iconColor: z.string().min(2).max(50),
-});
-
-const AddWorkspaceForm = ({ user }: AddWorkspaceFormProps) => {
-  // 1. Define your form.
-  const form = useForm<z.infer<typeof AddWorkspaceFormSchema>>({
-    resolver: zodResolver(AddWorkspaceFormSchema),
+const CreateWorkspaceForm = ({
+  user,
+  open,
+  setOpen,
+}: AddWorkspaceFormProps) => {
+  const form = useForm<CreateWorkspaceSchemaType>({
+    resolver: zodResolver(CreateWorkspaceFormSchema),
     defaultValues: {
       name: "",
       icon: "Zap",
-      iconColor: "black",
+      iconColor: "purple",
+      user: user?.id,
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof AddWorkspaceFormSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-  }
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: CreateWorkspace,
+    onSuccess: () => {
+      toast.success("Workspace created successfully", {
+        id: "create-workspace",
+      });
+      form.reset({
+        name: "",
+        icon: "Zap",
+        iconColor: "purple",
+        user: user?.id,
+      });
+
+      //After creating a transaction, we need to invalidate the transactions query to refetch the data
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces", user?.id],
+      });
+
+      setOpen(false);
+    },
+  });
+
+  const onSubmit = useCallback(
+    (data: CreateWorkspaceSchemaType) => {
+      toast.loading("Creating workspace...", { id: "create-workspace" });
+      mutate({
+        ...data,
+      });
+    },
+    [mutate],
+  );
 
   return (
     <Form {...form}>
@@ -54,12 +88,12 @@ const AddWorkspaceForm = ({ user }: AddWorkspaceFormProps) => {
             name="icon"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Icon color</FormLabel>
+                <FormLabel>Icon</FormLabel>
                 <FormControl>
                   <IconsSelect
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    color={form.getValues("iconColor")}
+                    color={form.watch("iconColor")}
                   />
                 </FormControl>
                 <FormMessage />
@@ -71,7 +105,7 @@ const AddWorkspaceForm = ({ user }: AddWorkspaceFormProps) => {
             name="iconColor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Icon</FormLabel>
+                <FormLabel>Icon color</FormLabel>
                 <FormControl>
                   <IconColorSelect
                     onValueChange={field.onChange}
@@ -96,10 +130,12 @@ const AddWorkspaceForm = ({ user }: AddWorkspaceFormProps) => {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" disabled={isPending}>
+          Submit
+        </Button>
       </form>
     </Form>
   );
 };
 
-export default AddWorkspaceForm;
+export default CreateWorkspaceForm;

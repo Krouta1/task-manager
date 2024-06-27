@@ -98,7 +98,7 @@ model Workspace {
   id            String          @id @default(cuid())
   name          String
   icon          WorkspaceIcon   @default(KeyRound)
-  iconColor     String?
+  iconColor     String?         @default("purple")
   isMain        Boolean         @default(false)
   userId        String
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
